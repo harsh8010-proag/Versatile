@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,31 +27,37 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-foreground hover:text-accent-foreground hover-elevate px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  data-testid={`link-nav-${item.name.toLowerCase()}`}
+            <div className="ml-10 flex items-center space-x-4">
+              <div className="flex items-baseline space-x-4">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="text-foreground hover:text-accent-foreground hover-elevate px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    data-testid={`link-nav-${item.name.toLowerCase()}`}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+              </div>
+              <div className="flex items-center space-x-2">
+                <ThemeToggle />
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-gradient-purple"
+                  data-testid="button-demo-registration"
+                  onClick={() => console.log('Demo Registration clicked')}
                 >
-                  {item.name}
-                </a>
-              ))}
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="bg-gradient-purple"
-                data-testid="button-demo-registration"
-                onClick={() => console.log('Demo Registration clicked')}
-              >
-                Demo Registration
-              </Button>
+                  Demo Registration
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          {/* Mobile menu button and theme toggle */}
+          <div className="md:hidden flex items-center space-x-2">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"

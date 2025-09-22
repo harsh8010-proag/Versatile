@@ -5,14 +5,41 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function ContactSection() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    course: '',
     message: ''
+  });
+
+  const contactMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await apiRequest('POST', '/api/contact', data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message Sent Successfully!",
+        description: "Thank you for your inquiry! We will contact you within 24 hours.",
+        duration: 5000,
+      });
+      setFormData({ name: '', email: '', phone: '', message: '' });
+    },
+    onError: (error) => {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error sending your message. Please try again or contact us directly.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    },
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -22,10 +49,19 @@ export default function ContactSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    // todo: remove mock functionality - add real form submission
-    alert('Thank you for your inquiry! We will contact you soon.');
-    setFormData({ name: '', email: '', phone: '', course: '', message: '' });
+    
+    // Basic validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please fill in all required fields (Name, Email, and Message).",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
+    contactMutation.mutate(formData);
   };
 
   return (
@@ -155,31 +191,17 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="Enter your phone number"
-                      data-testid="input-phone"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="course">Course Interest</Label>
-                    <Input
-                      id="course"
-                      name="course"
-                      type="text"
-                      value={formData.course}
-                      onChange={handleInputChange}
-                      placeholder="Which course interests you?"
-                      data-testid="input-course"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="Enter your phone number (optional)"
+                    data-testid="input-phone"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -200,8 +222,9 @@ export default function ContactSection() {
                   type="submit" 
                   className="w-full bg-gradient-purple"
                   data-testid="button-send-message"
+                  disabled={contactMutation.isPending}
                 >
-                  Send Message
+                  {contactMutation.isPending ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </CardContent>
